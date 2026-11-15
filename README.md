@@ -56,7 +56,9 @@ Every change we made to Sesame, and why we made it.
 
 **What:** We removed Sesame's screen top and widened the body base. We moved the four hip servos outwards and cut a round opening in the centre for the turntable's bearing hub.
 
-**Why:** The wider base gives the head room to turn freely on a turntable set into the body. Sitting low, the head reads as part of the body rather than an add-on. The legs themselves are unchanged.
+**Why:**
+- We wanted Bubble to express emotion and personality without a face. So we removed the screen and let a physical head carry the expression through its posture and movement.
+- The wider base gives the head room to turn freely on a turntable set into the body. Sitting low, the head reads as part of the body rather than an add-on. The legs themselves are unchanged.
 
 #### 2. A 2-servo head that nods and tilts
 
