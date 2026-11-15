@@ -14,7 +14,7 @@ Team Members: Lucie Mallard_Gonder, Rohan Oruganti, Yuying Chen
 4. [Software](#software)
 5. [Debugging Guide](#debugging-guide)
 
-Each section also has its own README in its folder: [`mechanical/`](mechanical/), [`hardware/`](hardware/) and [`software/`](software/). All images are in [`images/`](images/).
+ All images are in [`images/`](images/).
 
 ## Mechanical Design
 
@@ -58,7 +58,7 @@ Every change we made to Sesame, and why we made it.
 
 **Why:**
 - We wanted Bubble to express emotion and personality without a face. So we removed the screen and let a physical head carry the expression through its posture and movement.
-- The wider base gives the head room to turn freely on a turntable set into the body. Sitting low, the head reads as part of the body rather than an add-on. The legs themselves are unchanged.
+- We widened the base so the head can turn on a turntable inside the body. The legs are unchanged.
 
 #### 2. A 2-servo head that nods and tilts
 
@@ -66,7 +66,7 @@ Every change we made to Sesame, and why we made it.
 
 **Why:**
 - The servos stay low and out of sight, and the head itself carries no motors, so it stays small and light.
-- We set the lower servo horn at about 40° rather than level, to keep both servos away from their end stops.
+- We set the lower servo horn at about 40°, to keep both servos away from their end stops.
 - Before printing, we checked every pose in a custom servo simulator. The head stays at least 1.6 mm clear of the frame and servos, and the push rods stay 4.6 mm clear of the head.
 
 #### 3. Head turning driven by the L1 hip
@@ -83,7 +83,7 @@ Every change we made to Sesame, and why we made it.
 - teardrop foot shells over the knees;
 - a round head.
 
-**Why:** It gives the soft, friendly character of our concept, and makes the head and body read as one creature. The shell is shaped around the space each servo needs at its motion limits, so it never limits the hips, knees or head.
+**Why:** It gives the soft, cute and friendly character of our concept, and makes the head and body read as one creature. The shell is shaped around the space each servo needs at its motion limits, so it never limits the hips, knees or head.
 
 <details>
 <summary><b>Design process: how we got to the final shell and head</b></summary>
