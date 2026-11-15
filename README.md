@@ -202,16 +202,16 @@ The Machine Learning section explains which interaction triggers each one.
 
 | Servo | Joint | Arduino Nano Every pin |
 |---|---|---|
-| M1 | L1 | D11 |
-| M2 | L2 | D10 |
-| M3 | L3 | D12 |
-| M4 | L4 | D9 |
-| M5 | R1 | D7 |
-| M6 | R2 | D6 |
-| M7 | R3 | D8 |
-| M8 | R4 | D5 |
-| M9 | Head, upper servo | D4 |
-| M10 | Head, lower servo | D3 |
+| S1 | L1 | D11 |
+| S2 | L2 | D10 |
+| S3 | L3 | D12 |
+| S4 | L4 | D9 |
+| S5 | R1 | D7 |
+| S6 | R2 | D6 |
+| S7 | R3 | D8 |
+| S8 | R4 | D5 |
+| S9 | Head, upper servo | D4 |
+| S10 | Head, lower servo | D3 |
 
 **Power**
 - All 10 servos run from a 5 V rail: power bank → breadboard power board → servo red wires.
