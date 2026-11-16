@@ -3,21 +3,27 @@
 Group Number: 7  
 Team Members: Lucie Mallard_Gonder, Rohan Oruganti, Yuying Chen
 
+## Contents
+
+1. [Overall Concept](#overall-concept)
+   - [Why These Inputs and Outputs](#why-these-inputs-and-outputs)
+   - [User Journey](#user-journey)
+2. [System Overview](#system-overview)
+3. [Mechanical Design](#mechanical-design)
+4. [Hardware Design](#hardware-design)
+5. [Assembly Guide](#assembly-guide)
+6. [Software](#software)
+7. [Machine Learning](#machine-learning)
+8. [Debugging Guide](#debugging-guide)
+9. [Reflection and Future Work](#reflection-and-future-work)
+10. [References and Acknowledgements](#references-and-acknowledgements)
+
+All images are in [`images/`](images/).
+
 ## Overall Concept
 Bubble is a desktop companion that keeps you company while you work. It notices you, reacts to you, and offers a little encouragement, support and entertainment.
 
 Our starting point was Rocky from Project Hail Mary: a character with no face, whose feelings you read entirely from how he moves. Bubble has no face either. Everything it feels, it expresses through posture, movement and timing. A big part of the project was exploring how much emotion a body alone can communicate.
-
-## Contents
-
-1. [System Overview](#system-overview)
-2. [Mechanical Design](#mechanical-design)
-3. [Hardware Design](#hardware-design)
-4. [Assembly Guide](#assembly-guide)
-5. [Software](#software)
-6. [Debugging Guide](#debugging-guide)
-
- All images are in [`images/`](images/).
 
 ## System Overview
 
