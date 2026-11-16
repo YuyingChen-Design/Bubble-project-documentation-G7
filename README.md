@@ -1,5 +1,7 @@
 # Bubble-project-documentation-G7
 
+<br>
+
 Group Number: 7  
 Team Members: Lucie Mallard-Gonder, Rohan Oruganti, Yuying Chen
 
