@@ -3,7 +3,7 @@
 Group Number: 7  
 Team Members: Lucie Mallard-Gonder, Rohan Oruganti, Yuying Chen
 
-![Bubble, our desktop companion robot](images/CPS-hero-DSCF5747-hires.jpg)
+![Bubble, our desktop companion robot](images/bubbles-hero-21x9.jpg)
 
 ## Contents
 
