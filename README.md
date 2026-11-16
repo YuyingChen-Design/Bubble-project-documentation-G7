@@ -27,7 +27,36 @@ Bubble is a desktop companion that keeps you company while you work. It notices 
 
 Our starting point was Rocky from Project Hail Mary: a character with no face, whose feelings you read entirely from how he moves. Bubble has no face either. Everything it feels, it expresses through posture, movement and timing. A big part of the project was exploring how much emotion a body alone can communicate.
 
-## System Overview
+### User Journey
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="images/nod.GIF" alt="Bubble nodding back" width="100%"><br>
+      <b>You nod → Bubble nods back</b><br>
+      <i>Agreement: "I'm with you"</i>
+    </td>
+    <td align="center" width="50%">
+      <img src="images/shake_your_head.GIF" alt="Bubble turning its head from side to side" width="100%"><br>
+      <b>You shake your head → Bubble turns its head from side to side</b><br>
+      <i>Sympathy: "no, me neither"</i>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="images/wave_while_smiling.GIF" alt="Bubble doing a happy kick and a quick wave" width="100%"><br>
+      <b>You wave while smiling → Bubble does a happy little kick, then waves back quickly and fluidly</b><br>
+      <i>Excitement at seeing you</i>
+    </td>
+    <td align="center" width="50%">
+      <img src="images/wave_without_smiling.GIF" alt="Bubble lowering its head, then giving one slow wave" width="100%"><br>
+      <b>You wave without smiling → Bubble lowers its head in disappointment, then gives one slow, bouncing wave</b><br>
+      <i>A reluctant, sad goodbye</i>
+    </td>
+  </tr>
+</table>
+
+After each response, Bubble settles and waits for the next interaction. It ignores new gestures while it's moving and for a moment afterwards, so it never reacts to its own movement or to a half-finished gesture.
 
 ### Why These Inputs and Outputs
 
