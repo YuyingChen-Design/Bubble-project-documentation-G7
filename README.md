@@ -26,6 +26,13 @@ Bubble answers in the same language. It replies to body language with body langu
 
 ### User Journey
 
+| You... | Bubble... | What it communicates |
+| --- | --- | --- |
+| **Nod** | Nods back | Agreement: "I'm with you" |
+| **Shake your head** | Turns its head from side to side | Sympathy: "no, me neither" |
+| **Wave while smiling** | Does a happy little kick, then waves back quickly and fluidly | Excitement at seeing you |
+| **Wave without smiling** | Lowers its head in disappointment, then gives one slow, bouncing wave | A reluctant, sad goodbye |
+
 ## System Overview
 
 ## Mechanical Design
