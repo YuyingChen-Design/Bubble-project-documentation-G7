@@ -639,6 +639,8 @@ Start with the **Processing console**. Every detection is printed as `ACCEPTED` 
 | Wave detections stop matching after a settings change | `wave_config.json` or another locked setting was changed | Re-record the Wekinator examples |
 | A gesture is detected but nothing happens | It was ignored on purpose: robot busy, assessment running, settle time, or tracking not stable | Read the `IGNORED ...: reason` line in the console |
 
+<br>
+
 ## Reflection and Future Work
 
 ### What Worked
