@@ -497,7 +497,7 @@ We use **three separate Wekinator projects** instead of one. Head and wave are m
 |---|---|---|---|---|
 | #1 Head | 6448 | 2 | DTW, 2 gestures | `/output_1` = nod, `/output_2` = shake |
 | #2 Smile | 6449 | 2 | Classifier, 2 classes | `/smile/outputs`: 1 = smiling, 2 = not smiling |
-| #3 Wave | 6450 | 1 | DTW | `/wave/outputs` |
+| #3 Wave | 6450 | 1 | DTW, 1 gesture | `/wave/outputs` |
 
 
 **Why DTW for nod, shake and wave.** A nod is defined by the **shape** of the head's movement over time: down, then back up. DTW compares the recent movement with the recorded examples and lets them stretch or squash in time, so it tolerates some variation in how fast the gesture is done ([tslearn DTW guide](https://tslearn.readthedocs.io/en/stable/user_guide/dtw.html)). How well it copes still depends on the recorded examples and on Wekinator's DTW settings. A classifier only sees one moment at a time. It can't tell a nod from someone who is simply looking down, because a nod only counts once the head comes back up. A wave works the same way: the hand swings back and forth around the upright position, so the pattern over time is what matters. Both could also be recognised by a classifier using features from a short window of movement. We chose DTW because these gestures vary in speed and style between users.
@@ -512,7 +512,7 @@ The saved Wekinator projects contain:
 |---|---|
 | Head (DTW) | 10 recorded gestures: 5 nods (1.35–1.70 s each), 5 shakes (1.45–2.00 s each) |
 | Smile (classifier) | 356 labelled frames: 209 smiling (4 recording rounds), 147 not smiling (1 round) |
-| Wave (DTW) | Not counted. The project isn't on this PC |
+| Wave (DTW) | 22 recorded waves (0.37–0.90 s each) |
 
 We used small example sets while prototyping, and spent most of the effort on preprocessing. We got the final camera late in the project. We haven't formally checked whether these example sets are enough for unfamiliar users or other camera setups.
 
