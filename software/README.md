@@ -37,7 +37,7 @@ Keep every file in `python/` in the same folder. `combined_osc.py` imports the t
 | Python | 3.14 | `pip install -r python/requirements.txt` (mediapipe, opencv-python, numpy, python-osc) |
 | Processing | 4.5.7 | The **oscP5** library: Sketch > Import Library > Manage Libraries |
 | Arduino IDE | 2.3.10 | The **ServoEasing** library by Armin Joachimsmeyer, from the Library Manager. Set the board to **Arduino Nano Every** |
-| Wekinator | *(add version)* | Download from [wekinator.org](http://www.wekinator.org) |
+| Wekinator | 2.1.0.4 | Download from [wekinator.org](http://www.wekinator.org) |
 
 ## Running
 
