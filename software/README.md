@@ -25,7 +25,7 @@ software/
 ├── processing/combined_reader/ main Processing sketch: Wekinator outputs -> one robot command
 ├── arduino/bubble/             robot firmware: bubble.ino + bubble_movements.h
 ├── wekinator/                  trained Wekinator projects (head, smile, wave)
-└── tests/                      single-pipeline readers, an OSC monitor and a servo calibration sketch
+└── tests/                      single-pipeline readers and an OSC monitor
 ```
 
 Keep every file in `python/` in the same folder. `combined_osc.py` imports the three pipeline scripts. They load the MediaPipe models and `wave_config.json` from the folder they're in.
@@ -127,11 +127,10 @@ We built and tested each input as its own pipeline before merging them. Each Pyt
 
 | Test | Run with | What it checks |
 |---|---|---|
-| `tests/wekinator_reader/` | `python head_pose_osc.py` + Wekinator #1 | Nod/shake detection and the Arduino serial handshake, without smile or wave |
+| `tests/wekinator_reader/` | `python head_pose_osc.py` + Wekinator #1 | Nod/shake detection and the Arduino serial handshake, without smile or wave. Set `SERIAL_PORT` at the top first, as in `combined_reader` |
 | `tests/smile_reader/` | `python smile_osc.py` + Wekinator #2 | Smile classifier output and smile tracking status |
 | `tests/wave_reader/` | `python wave_osc.py` + Wekinator #3 | Wave detections, the hand angle and wave tracking status |
-| `tests/test_osc.pde` | anything that sends to port 12000 | An **OSC monitor**: shows every message's address, type tags and values, and whether it streams continuously or arrives as one-off events (e.g. a DTW match) |
-| `tests/servo_calibration/` | Arduino, Serial Monitor at 9600 | Type `1 90` to move servo 1 to 90°, or `4 30-80` to sweep servo 4. Used to find each servo's angles |
+| `tests/test_osc/` | anything that sends to port 12000 | An **OSC monitor**: shows every message's address, type tags and values, and whether it streams continuously or arrives as one-off events (e.g. a DTW match) |
 
 Only one sketch can listen on port 12000 at a time, so close `combined_reader` before running a test reader.
 
