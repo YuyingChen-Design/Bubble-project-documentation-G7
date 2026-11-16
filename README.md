@@ -15,7 +15,7 @@ Team Members: Lucie Mallard-Gonder, Rohan Oruganti, Yuying Chen
 4. [Hardware Design](#hardware-design)
 5. [Assembly Guide](#assembly-guide)
 6. [Software](#software)
-7. [Machine Learning](#machine-learning)
+7. [Machine Learning](#machine-learning-1)
 8. [Debugging Guide](#debugging-guide)
 9. [Reflection and Future Work](#reflection-and-future-work)
 10. [References and Acknowledgements](#references-and-acknowledgements)
@@ -107,7 +107,7 @@ Three Wekinator models run in parallel:
 
 DTW suits nods, shakes and waves because they're movements over time rather than held poses. A classifier suits smiling, which is a state at a single moment.
 
-Full details of the training data and evaluation are in [Machine Learning](#machine-learning).
+Full details of the training data and evaluation are in [Machine Learning](#machine-learning-1).
 
 ### Messaging
 
@@ -344,110 +344,236 @@ Everything you need to build it is in [`Build resource/`](Build%20resource/):
 
 ## Software
 
-How a webcam gesture becomes a robot movement:
+All of the code is in [`software/`](software/). This section explains how it works and why we built it this way. The step-by-step setup, the Wekinator settings and the test sketches are in [`software/README.md`](software/README.md).
+
+### Repository structure
 
 ```
-webcam -> combined_osc.py -> 3 Wekinator projects -> combined_reader (Processing) -> Arduino (bubble.ino)
+Bubble-project-documentation-G7/
+├── README.md            this document
+├── images/              figures used in this README
+├── Build resource/      CAD (STEP), 3D-print files (STL), bill of materials, assembly guide
+├── hardware/            wiring diagram and schematic (KiCad file + images)
+└── software/            all the code; setup guide in software/README.md
+    ├── python/          camera tracking -> OSC (combined_osc.py and the three pipelines)
+    ├── processing/      main Processing sketch (combined_reader)
+    ├── arduino/         robot firmware (bubble.ino + bubble_movements.h)
+    ├── wekinator/       trained Wekinator projects
+    └── tests/           single-pipeline test sketches
 ```
 
-- **Python** ([`python/`](software/python/)) tracks your head, smile and hand wave from one webcam and sends the features over OSC.
-- **Wekinator** turns those features into gestures: nod or shake, smiling or not smiling, and wave.
-- **Processing** ([`processing/combined_reader/`](software/processing/combined_reader/)) combines the gestures into one interaction and sends a command to the robot over USB serial.
-- **Arduino** ([`arduino/bubble/`](software/arduino/bubble/)) plays the matching servo movement.
+### Main sketch
 
-To run everything:
+The system runs as a chain of four programs, shown in the diagram in [System Overview](#system-overview). Each program only talks to the next one in the chain.
 
-1. Upload the Arduino sketch.
-2. Start the three Wekinator projects and set them to run.
-3. Start `combined_osc.py`.
-4. Start the Processing sketch.
+**`combined_osc.py` (Python).** This script opens the webcam once and sends every frame to two MediaPipe models:
+- The **Face Landmarker** feeds both the head pipeline and the smile pipeline.
+- The **Hand Landmarker** feeds the wave pipeline.
 
----
+Each pipeline cleans its features (see [Machine Learning](#machine-learning-1)). A sender thread then passes the latest values to that pipeline's own Wekinator at a roughly fixed rate. Each pipeline also sends a tracking-status heartbeat to Processing about whether its signal can be trusted: tracking, holding, lost, calibrating and so on. We first built the three pipelines as separate scripts and merged them into one later (see [Test sketches](#test-sketches)). `combined_osc.py` imports the three single-pipeline scripts, so all four must stay in the same folder.
 
-### 1. Python: `python/`
+**`combined_reader` (Processing).** This sketch turns the three Wekinator outputs into **one** robot action. Its tabs are:
 
-Install the dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run it:
-
-```bash
-python combined_osc.py            # asks which camera to use
-python combined_osc.py -c 0       # use camera 0 directly
-python combined_osc.py --list     # list the available cameras
-```
-
-Keys in the camera window: `c` recalibrates the head neutral, and `q` or `Esc` quits. When it starts, look straight ahead for about a second so it can set the head neutral.
-
-Keep every file in `python/` in the same folder. `combined_osc.py` imports `head_pose_osc.py`, `smile_osc.py` and `wave_osc.py`. It also loads the MediaPipe models (`face_landmarker.task`, `hand_landmarker.task`) and `wave_config.json` from that folder.
-
-#### Wave calibration
-
-The values in `wave_config.json` were calibrated to our setup. To calibrate for your own camera and hand:
-
-```bash
-python combined_osc.py --wave-calibrate        # wave normally for 20 s
-```
-
-This writes new `sigma_phi` and `sigma_x` values to `wave_config.json`, then exits. If you change the config, re-record your Wekinator #3 examples.
-
-#### OSC output
-
-| Stream | To Wekinator | Inputs sent to `/wek/inputs` |
-|---|---|---|
-| Head | port 6448 | 2: pitch, yaw (degrees from neutral) |
-| Smile | port 6449 | 2: mouthSmileLeft, mouthSmileRight (0 to 1) |
-| Wave | port 6450 | 1: z1 (2 if `use_x` is true in `wave_config.json`) |
-
-It also sends tracking status and features to port 12000 for the Processing sketch: `/head/*`, `/smile/*` and `/wave/*`.
-
----
-
-### 2. Wekinator
-
-The trained Wekinator projects aren't in this repo, so you need to make three projects and record your own examples. The input counts and output messages must match this table exactly:
-
-| Project | Listen on port | Inputs | Model type | Outputs (send to localhost:12000) |
-|---|---|---|---|---|
-| #1 Head | 6448 | 2 | Dynamic Time Warping, 2 gestures | gesture 1 = nod, sent as `/output_1`; gesture 2 = shake, sent as `/output_2` |
-| #2 Smile | 6449 | 2 | Classifier, 2 classes | OSC message `/smile/outputs`; class 1 = smiling, class 2 = not smiling |
-| #3 Wave | 6450 | 1 | Dynamic Time Warping, 1 gesture | OSC message `/wave/outputs` |
-
-Keep the default input message `/wek/inputs` for all three.
-
----
-
-### 3. Processing: `processing/combined_reader/`
-
-- Install the **oscP5** library from Sketch > Import Library > Manage Libraries.
-- Open `combined_reader.pde`. The other `.pde` files in the folder open as tabs, and the sketch needs all of them.
-- **Set your Arduino's serial port.** `head.pde` sets `SERIAL_PORT = "COM9";`. Change it to your port, such as `"COM3"` or `"/dev/cu.usbmodem..."`, or set it to `""` to use the last port in the list. The sketch prints the available ports when it starts. Close the Arduino Serial Monitor first, because only one program can open the port.
-- **To test without the robot,** set `ROBOT_ENABLED = false` in `combined_reader.pde`.
-
-The sketch listens for OSC on port 12000. The first time each OSC address arrives, the console prints an `ADDRESS ... -> route` line, so you can check that all three Wekinators are connected. Press `r` to recover the robot from FAULT.
-
----
-
-### 4. Arduino: `arduino/bubble/`
-
-- Board: **Arduino Nano Every**
-- Library: **ServoEasing** by Armin Joachimsmeyer, from the Library Manager
-- Open `bubble.ino`, which includes `bubble_movements.h` from the same folder.
-- The servo pins (`PIN_R1` ... `PIN_HL`) at the top of `bubble.ino` must match your wiring. See `hardware/` in this repo.
-- Serial runs at 115200 baud and prints `READY` when it's ready for commands.
-
-Serial commands:
-
-| Command | Movement |
+| Tab | Job |
 |---|---|
-| `N` | Nod |
-| `S` | Shake |
-| `W` | Wave (smiling) |
-| `F` | Wave (not smiling) |
-| `?` | Ping (replies `READY` when idle) |
+| `combined_reader.pde` | Setup and drawing. Routes each incoming OSC message by its address |
+| `head.pde` | Nod/shake detections, plus the serial link and robot state machine |
+| `smile.pde` | Records smile classifier predictions and checks smile tracking |
+| `wave.pde` | Wave detections and wave tracking checks |
+| `interaction.pde` | Shared interaction state, expression assessment and the command table |
+
+The interaction rules:
+
+| User does | Robot command | Robot behaviour |
+|---|---|---|
+| Nods | `N` | Nods back |
+| Shakes head | `S` | Shakes its head |
+| Waves **while smiling** | `W` | A "cute" pose, then a wave: *hello* |
+| Waves **without smiling** | `F` | A "disappointed" pose, then a wave: *goodbye* |
+
+Waving with a smile is how people say hello when they walk into a room, so Bubble replies with a cute wave. Waving without a smile usually happens when someone is leaving, so Bubble looks disappointed.
+
+A smile on its own never triggers anything. A wave starts a **600 ms expression assessment**:
+1. The sketch collects the smile predictions that arrive after the wave.
+2. It then sends `W` or `F` only if there were at least 5 predictions, at least 80% of them agree, and smile tracking stayed valid the whole time.
+
+Missing or uncertain data never counts as "not smiling"; the assessment is cancelled instead.
+
+Every detection must also pass these checks, or it is **ignored and logged (never queued)**:
+- **Tracking:** the Python heartbeat is fresh, and tracking has been clean for 1 s.
+- **Interaction:** no expression assessment is running, the robot is `READY`, and the 1 s settle time after the last action has passed. The settle time reduces the chance that leftover movement in Wekinator's DTW window triggers a second action. It doesn't rule it out, because the recorded head gestures are 1.35–2.0 s long, which is longer than the settle time.
+
+The sketch sends each command as one character over serial (115200 baud) and follows the Arduino's replies:
+
+```
+NOT_READY --READY--> READY --command--> AWAIT_ACK --BUSY--> BUSY --DONE--> READY
+```
+
+The robot goes to `FAULT` if any of these happen:
+- no `BUSY` within 1 s
+- no `DONE` within 10 s
+- the port disconnects
+- the Arduino resets mid-gesture
+
+Nothing is retried automatically. Press `r` to recover. Setting `ROBOT_ENABLED = false` runs the whole pipeline without opening the serial port.
+
+![Processing combined_reader window](images/processing_reader_fault.webp)
+*The `combined_reader` window. There is one panel per pipeline: head, smile and wave. Each panel shows its tracking state, its verdict and the last Wekinator output. Here no Wekinator is running yet, and the robot is in FAULT because COM9 was not found (see [Debugging Guide](#debugging-guide)).*
+
+**`bubble.ino` + `bubble_movements.h` (Arduino).** This firmware runs on an Arduino Nano Every and drives the 10 servos with the ServoEasing library. It is adapted from the [Sesame robot](https://github.com/dorianborian/sesame-robot) firmware.
+- `bubble_movements.h` holds the poses and the four gestures. Each gesture sets its own easing curves and speeds.
+- `bubble.ino` handles the serial protocol. It prints `READY` when idle, `BUSY` when a command is accepted, and `DONE` when the whole gesture has finished. Commands that arrive while it's busy are thrown away, never queued.
+- The built-in LED blinks 1–4 times to show which gesture is playing.
+
+### Running the system
+
+**Install:**
+- **Python 3.14:** `pip install -r software/python/requirements.txt`
+- **Processing 4.5.7:** the **oscP5** library
+- **Arduino IDE 2.3.10:** the **ServoEasing** library, with the board set to Arduino Nano Every
+
+**Start in this order:**
+1. **Arduino:** upload `software/arduino/bubble/bubble.ino`, then close the Serial Monitor.
+2. **Wekinator:** open the three projects in `software/wekinator/` and press **Run** in each.
+3. **Python:** run `python software/python/combined_osc.py`, pick the camera, then look straight ahead for about 1 s so it can calibrate the head neutral.
+4. **Processing:** open `software/processing/combined_reader/combined_reader.pde`, set `SERIAL_PORT` in `head.pde` to your Arduino's port, then run it.
+
+All three panels should show "tracking", and the robot line should show `READY`. The full setup is in [`software/README.md`](software/README.md#running): camera options, keys, Wekinator settings and wave calibration.
+
+### Test sketches
+
+We built and tested each input as its own pipeline before merging them into `combined_osc.py` and `combined_reader`. Each Python pipeline script still runs on its own, and each one has a small Processing reader, so you can test one gesture by itself. There is also an OSC monitor, which shows exactly what Wekinator sends, and a servo calibration sketch. The full list, and how to run each one, is in [`software/README.md`](software/README.md#test-sketches).
+
+---
+
+## Machine Learning
+
+### Inputs and classes
+
+All three models get their inputs from **MediaPipe** landmarks on a single webcam. We spent most of our effort on **preprocessing**, to give Wekinator cleaner, more consistent features.
+
+Preprocessing reduces sensitivity to resting head orientation, image scale and sampling differences. It doesn't guarantee recognition that works for any camera or any user, so calibration and testing are still needed when the setup changes.
+
+| Model | Inputs to Wekinator | Classes / gestures |
+|---|---|---|
+| #1 Head | 2: **pitch, yaw** (degrees from your neutral pose) | nod, shake |
+| #2 Smile | 2: **mouthSmileLeft, mouthSmileRight** (MediaPipe blendshape scores, 0–1) | 1 = smiling, 2 = not smiling |
+| #3 Wave | 1: **z1 = φ / σ_φ** (normalised hand tilt) | wave |
+
+**Head preprocessing (`head_pose_osc.py`).** The steps, in order:
+1. Pitch and yaw come from MediaPipe's facial transformation matrix.
+2. A 5-frame **median filter** removes one-frame spikes. The window is counted in camera frames, so the time it covers depends on the frame rate. For example, it's about 0.17 s at 30 fps and about 0.33 s at 15 fps.
+3. The **neutral pose** is subtracted. It's the average of 30 frames taken while the user looks straight ahead at startup. This removes the session's resting head orientation, such as a user sitting slightly turned. It doesn't correct for very different camera angles, for different people, or for tracking errors.
+4. An **EMA** (α = 0.4) and a **±5° deadzone** reduce jitter. 
+5. The features are sent at about **20 Hz**, using the latest available measurement. Sending at a steady rate isn't the same as getting 20 new measurements a second: if the camera loop runs slower than 20 Hz, values are repeated.
+
+**Tracking loss and reacquisition.** The steps when the face is lost and found again:
+1. The last value is held for 0.5 s, then glides back to neutral.
+2. When the face comes back, the output moves towards the new value at no more than 3° per send tick (60°/s).
+3. Processing ignores head gestures while the status isn't "tracking" (holding, lost or recovering), and for 1 s after tracking becomes clean again.
+
+The recorded head gestures are 1.35–2.0 s long. So Wekinator's DTW window can still contain part of the generated glide after that 1 s. These generated movements can still be mistaken for part of a nod or shake.
+
+**Smile preprocessing (`smile_osc.py`).** The two smile blendshapes are looked up by name and passed through a 5-frame median filter. As with the head pipeline, the time this window covers depends on the camera frame rate. The values are then sent at about 20 Hz, using the latest measurement. Values are only trusted when the face is within 35° of yaw and 30° of pitch, because blendshapes become unreliable when the face is turned further. Beyond that, the status changes to "off angle".
+
+**Wave preprocessing (`wave_osc.py`).** The steps, in order:
+1. **Hand selection:** if several hands are visible, it picks the **largest apparent hand**, then follows that hand from frame to frame. It ignores hands smaller than `min_hand_size`. This is a selection heuristic. The largest hand in the image isn't necessarily the closest one, or the person who is interacting.
+2. **Tilt angle φ:** the tilt of the hand's axis in the image plane. It's the angle of the line from the wrist to the middle-finger knuckle, measured from the camera's vertical (upright = 0, tilted towards image-right = positive). We assumed a wave usually shows up as φ swinging back and forth around upright. Waving from the wrist and waving from the elbow can produce similar tilt patterns, but aren't guaranteed to. φ doesn't fully describe a wave: a hand that moves sideways while keeping nearly the same tilt barely changes φ. The script has an optional second feature for sideways palm position (`use_x`), but it's off in our configuration.
+3. **Clean-up:** it corrects for the frame's aspect ratio and unwraps φ, so the angle never jumps by 360°.
+4. **Smoothing:** a **One Euro filter** ([Casiez, Roussel & Vogel, 2012](https://gery.casiez.net/1euro/)) smooths φ. It trades stronger jitter suppression at low speeds against lower lag during faster movement.
+5. **Normalisation:** z1 = φ_smoothed / σ_φ, which has no units. No reference or mean angle is subtracted first; φ is used as measured from the camera vertical.
+   - **How σ_φ is calculated:** in calibration mode (`--wave-calibrate`, 20 s by default), it's the population standard deviation of the **raw, unfiltered** φ over all frames where a hand was detected, in **radians**. It's stored in `wave_config.json`.
+   - **Safety checks:** calibration needs at least 30 hand frames. It is rejected, leaving the config unchanged, if σ_φ comes out below 0.001 rad.
+   - **No runtime limit:** there's no lower limit when the config is loaded, so a hand-edited value close to 0 would make the input blow up.
+   - The current value, 0.4 rad (about 23°), is the script's default.
+
+6. **No hand, no data:** nothing is sent when no hand is visible. Sending zeros instead would draw fake shapes for DTW to match against. Features are sent at about 30 Hz (`send_hz`), using the latest measurement.
+
+### Outputs and models
+
+We use **three separate Wekinator projects** instead of one. Head and wave are movements over time, so each gets a **Dynamic Time Warping (DTW)** model. Smile is a static expression, so it gets a **classifier**. Separate projects can also be retrained one at a time without affecting the others.
+
+| Project | Listens on | Inputs | Model | Output message (to port 12000) |
+|---|---|---|---|---|
+| #1 Head | 6448 | 2 | DTW, 2 gestures | `/output_1` = nod, `/output_2` = shake |
+| #2 Smile | 6449 | 2 | Classifier, 2 classes | `/smile/outputs`: 1 = smiling, 2 = not smiling |
+| #3 Wave | 6450 | 1 | DTW | `/wave/outputs` |
+
+
+**Why DTW for nod, shake and wave.** A nod is defined by the **shape** of the head's movement over time: down, then back up. DTW compares the recent movement with the recorded examples and lets them stretch or squash in time, so it tolerates some variation in how fast the gesture is done ([tslearn DTW guide](https://tslearn.readthedocs.io/en/stable/user_guide/dtw.html)). How well it copes still depends on the recorded examples and on Wekinator's DTW settings. A classifier only sees one moment at a time. It can't tell a nod from someone who is simply looking down, because a nod only counts once the head comes back up. A wave works the same way: the hand swings back and forth around the upright position, so the pattern over time is what matters. Both could also be recognised by a classifier using features from a short window of movement. We chose DTW because these gestures vary in speed and style between users.
+
+**Why a classifier for smile.** A smile shows up in a single frame: the two corners of the mouth are in a certain position. So a classifier on the two mouth blendshapes is enough. Processing then smooths the classifier's output over the 600 ms expression window described above.
+
+### Training data
+
+The saved Wekinator projects contain:
+
+| Model | Examples |
+|---|---|
+| Head (DTW) | 10 recorded gestures: 5 nods (1.35–1.70 s each), 5 shakes (1.45–2.00 s each) |
+| Smile (classifier) | 356 labelled frames: 209 smiling (4 recording rounds), 147 not smiling (1 round) |
+| Wave (DTW) | Not counted. The project isn't on this PC |
+
+We used small example sets while prototyping, and spent most of the effort on preprocessing. We got the final camera late in the project. We haven't formally checked whether these example sets are enough for unfamiliar users or other camera setups.
+
+Training is quick: during the live tutor demo, we retrained the smile model in a few seconds. This is because Wekinator only receives the numeric features we send from MediaPipe, not raw images, so it isn't directly affected by the pixels. However, MediaPipe's tracking accuracy can still vary with lighting, camera angle and appearance, so these factors can still affect the features Wekinator receives.
+
+
+The preprocessing settings are fixed. They're labelled "LOCKED CONVENTIONS" at the top of each Python file. Changing the number or order of inputs, the units, the send rate, the filter windows or `wave_config.json` makes the recorded examples invalid, and they have to be recorded again.
+
+### Evaluation and Future Work
+
+We haven't run a formal test with counted trials. Informally, all three gestures were recognised fairly reliably during development.
+
+At the **live demo**, visitors were able to trigger the gestures fairly accurately. However, nod and shake produced both false positives and false negatives. They sometimes triggered by accident, and visitors didn't find them the most intuitive gestures to use. We haven't confirmed why. A likely cause is that people move their heads naturally while looking around or talking to each other, and some of those movements are close enough to a nod or shake to match.
+
+The reader's checks are designed to reduce accidental triggers: the tracking-status checks, the 1 s settle time, the 80% smile agreement, and ignoring detections while the robot is busy. We haven't measured how much they reduce them.
+
+Known limitations that a test should cover:
+- The median-filter windows cover different lengths of time at different camera frame rates.
+- Values are repeated when processing runs slower than the send rate.
+- The generated movement during tracking recovery is also sent to Wekinator.
+- φ doesn't capture a wave made by moving the hand sideways without tilting it.
+
+Each ignored detection is logged with its reason (`IGNORED nod: ...`). A next step would be to log these over a session, then try 20 attempts per gesture and count hits, misses and false triggers.
+
+The main priority is to reduce accidental triggers without making deliberate gestures harder to recognise. Further development should combine counted evaluation with targeted changes, rather than tuning the system solely around the team’s own movements.
+
+**Calibrate head filtering and dead zones.** The EMA smoothing and dead-zone settings were selected during development rather than systematically calibrated. Future work should measure tracking noise while users sit still, then compare these measurements with small and large deliberate gestures. Testing across several people and camera configurations would help select settings that suppress jitter without rejecting subtle nods or shakes. Evaluation should include people or sessions not used for tuning, to avoid overfitting the settings to the developers.
+
+**Investigate DTW sensitivity.** Nod and shake produced accidental detections during the live demo, but their causes have not been confirmed. Possible contributors include natural head movements resembling the recorded gestures, insufficiently varied examples, preprocessing settings and the DTW matching configuration. Future tests should log pitch/yaw sequences alongside detections and compare false positives and false negatives under controlled changes to the threshold, matching settings and training examples. Our working explanation is that nod and shake recordings share similar stretches: both start and end near neutral, and small pitch and yaw movements appear in both. As a result, short or small head movements can sit close to examples of either gesture. DTW compares whole sequences rather than single positions, so this overlap needs to be confirmed in the logged data rather than assumed.
+
+**Compare alternative temporal recognition methods.** A future comparison could test the current angle-based DTW recogniser against DTW with additional angular-velocity features, or a classifier using features extracted from a short movement window. A classifier using only the current pitch and yaw would not explicitly represent the complete gesture. Any alternative should therefore retain movement history and be evaluated on varied gesture sizes, speeds and users. We would not assume that classification is better without comparing recognition accuracy, latency and accidental-trigger rates.
+
+**Defining a wave.** We currently represent waving through the hand-tilt angle φ. The script also supports adding the palm’s sideways position through the `use_x` option, but we left this disabled. We were concerned that ordinary sideways hand movements could affect matching and introduce accidental detections, and we did not have time to validate the additional feature’s scaling or its effect on recognition. We therefore kept the prototype to the single tilt input that we had tested. This was a conservative implementation choice, not evidence that multiple inputs are inherently less reliable. Future work should compare tilt alone with tilt plus palm position, measuring whether the additional feature supports more waving styles without increasing false detections.
+
+**Improve hand selection and identity tracking.** Selecting the largest apparent hand worked adequately during the live demonstrations, so this is a lower priority than head-recognition reliability. Nevertheless, future testing should include multiple visible hands and people entering or leaving the frame. Alternative selection rules could use handedness, spatial continuity or an explicit user-selection step to reduce unintended switching between hands.
+
+These changes should be assessed using both deliberate gesture trials and timed periods of ordinary behaviour, such as talking, looking around and reaching. Results should distinguish Wekinator detections from robot actions, since the interaction controller intentionally rejects detections while the robot is busy or an expression assessment is running.
+
+---
+
+## Debugging Guide
+
+Start with the **Processing console**. Every detection is printed as `ACCEPTED` or `IGNORED` with a reason. The first time each OSC address arrives, a line like `ADDRESS /smile/outputs -> smile` is printed, so you can see which programs are connected.
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `robot: FAULT – could not open COM9 (Port not found)` (see screenshot above) | Wrong serial port, or the Arduino isn't plugged in | Set `SERIAL_PORT` in `head.pde` to the port shown under "Serial ports:" in the console, or to `""` to use the last one. Press `r` |
+| `could not open COMx ... is the Serial Monitor open?` | The Arduino IDE Serial Monitor has the port open | Close the Serial Monitor. Only one program can use the port |
+| Robot stays `NOT READY` | Firmware not uploaded, wrong baud, or a servo pin left unset | Open the Serial Monitor at 115200 and read the `DEBUG:` lines. Any `PIN_` left as `PIN_NOT_SET` stops `READY` |
+| `FAULT` straight after a command | The Arduino reset or didn't reply `BUSY` within 1 s | Check the USB cable and power, then press `r` |
+| A panel says `waiting for ... Wekinator...` | That Wekinator isn't running, isn't in **Run** mode, or sends to the wrong port or address | Check the [Outputs and models](#outputs-and-models) table. Use `tests/test_osc.pde` to see what's actually arriving |
+| `ADDRESS /wek/outputs -> UNHANDLED` | A Wekinator output message was left at the default `/wek/outputs` | Rename it to `/smile/outputs` or `/wave/outputs` |
+| `tracking unavailable` in every panel | `combined_osc.py` isn't running, so there's no heartbeat | Start the Python script |
+| Head: `tracking unavailable (calibrating)` | Neutral calibration is still running, or no face is visible | Look straight at the camera and hold still, or press `c` |
+| Smile: `off angle` | Face turned more than 35° (yaw) or 30° (pitch) | Face the camera |
+| Wave: `no hand`, or `hands below min_hand_size` in the camera window | Hand not found, or too small in the frame | Move closer, or lower `min_hand_size` in `wave_config.json` (no retraining needed) |
+| `Could not open camera N` | Another app is using the webcam | Close it. List cameras with `python combined_osc.py --list` and pick one with `-c N` |
+| Wekinator shows no incoming data | Wrong input port or input count | Ports 6448 / 6449 / 6450. Inputs 2 / 2 / 1 (the wave count is printed when the script starts) |
+| Port 12000 already in use | Another reader or test sketch is still open | Close it. Only one sketch can listen on 12000 |
+| Wave detections stop matching after a settings change | `wave_config.json` or another locked setting was changed | Re-record the Wekinator examples |
+| A gesture is detected but nothing happens | It was ignored on purpose: robot busy, assessment running, settle time, or tracking not stable | Read the `IGNORED ...: reason` line in the console |
 
 ## Reflection and Future Work
 
