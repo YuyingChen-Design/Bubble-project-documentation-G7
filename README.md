@@ -484,6 +484,7 @@ The twin starts from the same stand pose as the firmware (R1 135°, R2 45°, L1 
 ### Limitations
 
 We deliberately didn't make the twins physically accurate. Their job was to show the robot's *expression*, and we had the real robot for checking how movements actually worked, so full accuracy wasn't worth the extra effort. The models don't simulate load, servo speed limits or play in the printed joints, so every gesture was still checked and fine-tuned on the real robot. For example, the shake in the firmware uses "the same pace as the tested shake", a speed that was checked on the robot itself.
+
 ---
 
 ## Machine Learning
