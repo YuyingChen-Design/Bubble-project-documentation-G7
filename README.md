@@ -450,3 +450,41 @@ Serial commands:
 - **A built-in camera,** so Bubble sees from its own point of view instead of from a separate webcam.
 - **Neater wiring.** A servo driver board (PCA9685) would reduce the cables coming out of the body to four, making the robot tidier and easier to move.
 - **Testing with users,** to find out which movements people read as which emotions, and refining them from that.
+
+## References and Acknowledgements
+
+### Design and Hardware
+
+- **Sesame robot** by Dorian Todd (dorianborian): the base quadruped design, printed leg parts, pose angles and original firmware. https://github.com/dorianborian/sesame-robot (Apache 2.0 licence)
+- **CPS module resources** (Imperial College London / RCA): robot arm, build resources and example code. https://github.com/IDE-GID-Cyberphysical-Systems
+
+### Software and Libraries
+
+- **Wekinator** by Rebecca Fiebrink: interactive machine learning. http://www.wekinator.org
+- **MediaPipe** by Google, including the Face Landmarker and Hand Landmarker models: face, head and hand tracking. https://ai.google.dev/edge/mediapipe
+- **OpenCV** (`opencv-python`): webcam capture. https://opencv.org
+- **NumPy:** numerical processing. https://numpy.org
+- **python-osc:** sending OSC messages from Python to Wekinator. https://pypi.org/project/python-osc/
+- **Processing:** https://processing.org
+- **oscP5** by Andreas Schlegel: receiving OSC in Processing. https://sojamo.de/libraries/oscP5/
+- **Arduino IDE:** https://www.arduino.cc
+- **ServoEasing** by Armin Joachimsmeyer: smooth, eased servo movement on the Arduino. https://github.com/ArminJo/ServoEasing
+
+### Acknowledgements
+
+Thank you to the CPS teaching team, Becky Stewart, Oisin Shaw and Andy Brand, and to the graduate teaching assistants, Imogen Young and Wei Zhang, for their guidance and feedback throughout the project. Thank you to the ACE Workshop technicians for their help with fabrication and 3D printing, and to our classmates for their help troubleshooting along the way.
+
+### Use of Generative AI
+
+In line with the module guidance, we declare the following use of generative AI tools:
+
+- **Claude (Anthropic):**
+    - adapting the Sesame firmware to the Arduino Nano Every and our wiring
+    - writing hardware test and calibration sketches
+    - troubleshooting the circuit and power set-up
+    - building the head-servo animation simulator
+    - generating a concept image of the head-turn bearing system
+    - help structuring and drafting parts of this documentation
+- **Perplexity:** generating an overview of the system architecture.
+
+All AI-assisted code was tested on our hardware and reviewed by the team. All design decisions, and the final content of this documentation, are our own.
