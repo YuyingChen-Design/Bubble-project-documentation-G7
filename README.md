@@ -29,7 +29,7 @@ Our starting point was Rocky from Project Hail Mary: a character with no face, w
 
 ### User Journey
 
-![User journey](images/user_journey.png)
+![Bubble user journey: setup, nod, shake, wave while smiling, wave without smiling, and waiting](images/user_journey.png)
 
 <table>
   <tr>
