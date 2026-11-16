@@ -442,7 +442,7 @@ All three panels should show "tracking", and the robot line should show `READY`.
 
 ### Test sketches
 
-We built and tested each input as its own pipeline before merging them into `combined_osc.py` and `combined_reader`. Each Python pipeline script still runs on its own, and each one has a small Processing reader, so you can test one gesture by itself. There is also an OSC monitor, which shows exactly what Wekinator sends, and a servo calibration sketch. The full list, and how to run each one, is in [`software/README.md`](software/README.md#test-sketches).
+We built and tested each input as its own pipeline before merging them into `combined_osc.py` and `combined_reader`. Each Python pipeline script still runs on its own, and each one has a small Processing reader, so you can test one gesture by itself. There is also an OSC monitor, which shows exactly what Wekinator sends. The full list, and how to run each one, is in [`software/README.md`](software/README.md#test-sketches).
 
 ---
 
@@ -563,7 +563,7 @@ Start with the **Processing console**. Every detection is printed as `ACCEPTED` 
 | `could not open COMx ... is the Serial Monitor open?` | The Arduino IDE Serial Monitor has the port open | Close the Serial Monitor. Only one program can use the port |
 | Robot stays `NOT READY` | Firmware not uploaded, wrong baud, or a servo pin left unset | Open the Serial Monitor at 115200 and read the `DEBUG:` lines. Any `PIN_` left as `PIN_NOT_SET` stops `READY` |
 | `FAULT` straight after a command | The Arduino reset or didn't reply `BUSY` within 1 s | Check the USB cable and power, then press `r` |
-| A panel says `waiting for ... Wekinator...` | That Wekinator isn't running, isn't in **Run** mode, or sends to the wrong port or address | Check the [Outputs and models](#outputs-and-models) table. Use `tests/test_osc.pde` to see what's actually arriving |
+| A panel says `waiting for ... Wekinator...` | That Wekinator isn't running, isn't in **Run** mode, or sends to the wrong port or address | Check the [Outputs and models](#outputs-and-models) table. Use the OSC monitor in `software/tests/test_osc/` to see what's actually arriving |
 | `ADDRESS /wek/outputs -> UNHANDLED` | A Wekinator output message was left at the default `/wek/outputs` | Rename it to `/smile/outputs` or `/wave/outputs` |
 | `tracking unavailable` in every panel | `combined_osc.py` isn't running, so there's no heartbeat | Start the Python script |
 | Head: `tracking unavailable (calibrating)` | Neutral calibration is still running, or no face is visible | Look straight at the camera and hold still, or press `c` |
