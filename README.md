@@ -3,7 +3,11 @@
 Group Number: 7  
 Team Members: Lucie Mallard-Gonder, Rohan Oruganti, Yuying Chen
 
+<br>
+
 ![Bubble, our desktop companion robot](images/bubbles-hero-21x9.jpg)
+
+<br>
 
 ## Contents
 
@@ -22,6 +26,8 @@ Team Members: Lucie Mallard-Gonder, Rohan Oruganti, Yuying Chen
 11. [References and Acknowledgements](#references-and-acknowledgements)
 
 All images are in [`images/`](images/).
+
+<br>
 
 ## Overall Concept
 Bubble is a desktop companion that keeps you company while you work. It notices you, reacts to you, and offers a little encouragement, support and entertainment.
@@ -69,6 +75,7 @@ We chose inputs that people already use every day to communicate without words: 
 
 Bubble answers in the same language. It replies to body language with body language, the way a person or a pet would. Smiling on its own doesn't make Bubble move; instead, it changes the meaning of a wave. A happy wave and a reluctant wave get very different responses, which makes the interaction feel personal rather than mechanical.
 
+<br>
 
 ## System Overview
 
@@ -132,6 +139,8 @@ The Arduino Nano Every runs `bubble.ino`, which turns each letter into a movemen
 It uses the **ServoEasing** library, so the servos speed up and slow down along curves (linear, bounce, and so on) instead of moving at one fixed speed. We used different curves to give each response its own character, for example a quick, fluid linear wave for happy, and a bounce for the reluctant wave.
 
 **Power:** the servos are powered from the power board, which runs from a power bank on a separate 5 V rail. The Arduino is powered by the computer over USB, which also carries the serial messages. The two share a ground (see [Hardware Design](#hardware-design)).
+
+<br>
 
 ## Mechanical Design
 
@@ -303,6 +312,8 @@ These poses are combined into the four movements the robot reacts with:
 
 The Machine Learning section explains which interaction triggers each one.
 
+<br>
+
 ## Hardware Design
 
 ### Wiring
@@ -334,6 +345,8 @@ The Machine Learning section explains which interaction triggers each one.
 - The Nano Every is powered by the computer over USB; the same USB link carries the serial commands from Processing (Wekinator → Processing → Arduino).
 - The servo 5 V rail is **not** connected to the Nano's 5V pin. The grounds **are** connected (power board GND ↔ Nano GND), otherwise the servo signals have no reference.
 
+<br>
+
 ## Assembly Guide
 
 The step-by-step build is in [Bubble Robot Assembly Guide.pdf](Build%20resource/Bubble%20Robot%20Assembly%20Guide.pdf).
@@ -343,6 +356,8 @@ Everything you need to build it is in [`Build resource/`](Build%20resource/):
 - the STL files for every printed part in [`Printing parts/`](Build%20resource/Printing%20parts/);
 - the full CAD model, [`Bubble_robot_CAD.step`](Build%20resource/Bubble_robot_CAD.step);
 - the bill of materials, [`Bubble robot-BoM.xlsx`](Build%20resource/Bubble%20robot-BoM.xlsx).
+
+<br>
 
 ## Software
 
@@ -446,7 +461,7 @@ All three panels should show "tracking", and the robot line should show `READY`.
 
 We built and tested each input as its own pipeline before merging them into `combined_osc.py` and `combined_reader`. Each Python pipeline script still runs on its own, and each one has a small Processing reader, so you can test one gesture by itself. There is also an OSC monitor, which shows exactly what Wekinator sends. The full list, and how to run each one, is in [`software/README.md`](software/README.md#test-sketches).
 
----
+<br>
 
 ## Animation Design Process
 
@@ -485,7 +500,7 @@ The twin starts from the same stand pose as the firmware (R1 135°, R2 45°, L1 
 
 We deliberately didn't make the twins physically accurate. Their job was to show the robot's *expression*, and we had the real robot for checking how movements actually worked, so full accuracy wasn't worth the extra effort. The models don't simulate load, servo speed limits or play in the printed joints, so every gesture was still checked and fine-tuned on the real robot. For example, the shake in the firmware uses "the same pace as the tested shake", a speed that was checked on the robot itself.
 
----
+<br>
 
 ## Machine Learning
 
@@ -599,7 +614,7 @@ Future work should record examples from several people and across several sessio
 
 These changes should be assessed using both deliberate gesture trials and timed periods of ordinary behaviour, such as talking, looking around and reaching. Results should distinguish Wekinator detections from robot actions, since the interaction controller intentionally rejects detections while the robot is busy or an expression assessment is running.
 
----
+<br>
 
 ## Debugging Guide
 
@@ -653,6 +668,8 @@ Start with the **Processing console**. Every detection is printed as `ACCEPTED` 
 - **Neater wiring.** A servo driver board (PCA9685) would reduce the cables coming out of the body to four, making the robot tidier and easier to move.
 - **Testing with users,** to find out which movements people read as which emotions, and refining them from that.
 - **Software:** See [section above](#evaluation-and-future-work)
+
+<br>
 
 ## References and Acknowledgements
 
