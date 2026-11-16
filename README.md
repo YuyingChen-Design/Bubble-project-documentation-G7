@@ -64,14 +64,6 @@ We chose inputs that people already use every day to communicate without words: 
 
 Bubble answers in the same language. It replies to body language with body language, the way a person or a pet would. Smiling on its own doesn't make Bubble move; instead, it changes the meaning of a wave. A happy wave and a reluctant wave get very different responses, which makes the interaction feel personal rather than mechanical.
 
-### User Journey
-
-| You... | Bubble... | What it communicates |
-| --- | --- | --- |
-| **Nod** | Nods back | Agreement: "I'm with you" |
-| **Shake your head** | Turns its head from side to side | Sympathy: "no, me neither" |
-| **Wave while smiling** | Does a happy little kick, then waves back quickly and fluidly | Excitement at seeing you |
-| **Wave without smiling** | Lowers its head in disappointment, then gives one slow, bouncing wave | A reluctant, sad goodbye |
 
 ## System Overview
 
