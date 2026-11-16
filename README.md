@@ -4,7 +4,9 @@ Group Number: 7
 Team Members: Lucie Mallard_Gonder, Rohan Oruganti, Yuying Chen
 
 ## Overall Concept
+Bubble is a desktop companion that keeps you company while you work. It notices you, reacts to you, and offers a little encouragement, support and entertainment.
 
+Our starting point was Rocky from Project Hail Mary: a character with no face, whose feelings you read entirely from how he moves. Bubble has no face either. Everything it feels, it expresses through posture, movement and timing. A big part of the project was exploring how much emotion a body alone can communicate.
 
 ## Contents
 
@@ -17,8 +19,6 @@ Team Members: Lucie Mallard_Gonder, Rohan Oruganti, Yuying Chen
  All images are in [`images/`](images/).
 
 ## Mechanical Design
-
-
 
 Bubble Robot is a small four-legged companion that reacts to people with its body and a nodding, tilting and turning head.
 
