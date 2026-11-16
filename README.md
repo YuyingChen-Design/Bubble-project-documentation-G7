@@ -31,6 +31,8 @@ Our starting point was Rocky from Project Hail Mary: a character with no face, w
 
 ![Bubble user journey: setup, nod, shake, wave while smiling, wave without smiling, and waiting](images/user_journey.png)
 
+Bubble sits on your desk next to your laptop, connected by USB, while a webcam watches for four everyday gestures. Each one gets its own response, made only with movement: a nod is met with a nod, and a head shake with a sympathetic shake. A wave gets a different reply depending on your expression. If you're smiling, Bubble does a happy little kick and waves back quickly. If you're not, it lowers its head and gives one slow, reluctant wave. After each response, Bubble settles and waits, ignoring new gestures until it has finished moving, so every interaction feels like a short, clear exchange rather than a constant stream of reactions. The illustration below walks through each step, and the GIFs underneath show the real robot in action.
+
 <table>
   <tr>
     <td align="center" width="50%">
