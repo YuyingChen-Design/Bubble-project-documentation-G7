@@ -687,7 +687,7 @@ In line with the module guidance, we declare the following use of generative AI 
     - troubleshooting the circuit and power set-up
     - building the head-servo animation simulator and robot digital twin for animation.
     - help structuring and drafting parts of this documentation
-    - organising the software files in this repository and pushing them to GitHub. Claude handled the uploading; the code, Wekinator projects and written content it pushed are our own work.
+    - implementing the gesture-recognition software and pushing it to GitHub. Rohan designed the preprocessing and post-processing pipeline, and Claude helped implement it in code and upload the files, Wekinator projects and documentation to this repository.
 - **Perplexity:** generating an overview of the system architecture.
 
 All AI-assisted code was tested on our hardware and reviewed by the team. All design decisions, and the final content of this documentation, are our own.
