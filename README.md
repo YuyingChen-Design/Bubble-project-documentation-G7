@@ -29,6 +29,8 @@ Our starting point was Rocky from Project Hail Mary: a character with no face, w
 
 ### User Journey
 
+![User journey](images/user_journey.png)
+
 <table>
   <tr>
     <td align="center" width="50%">
