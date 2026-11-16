@@ -18,6 +18,16 @@ Our starting point was Rocky from Project Hail Mary: a character with no face, w
 
  All images are in [`images/`](images/).
 
+### Why These Inputs and Outputs
+
+We chose inputs that people already use every day to communicate without words: nodding, shaking your head, waving and smiling. They need no explanation or training to use, so anyone who sits down in front of Bubble can interact with it straight away, including people trying it for the first time.
+
+Bubble answers in the same language. It replies to body language with body language, the way a person or a pet would. Smiling on its own doesn't make Bubble move; instead, it changes the meaning of a wave. A happy wave and a reluctant wave get very different responses, which makes the interaction feel personal rather than mechanical.
+
+### User Journey
+
+## System Overview
+
 ## Mechanical Design
 
 Bubble Robot is a small four-legged companion that reacts to people with its body and a nodding, tilting and turning head.
