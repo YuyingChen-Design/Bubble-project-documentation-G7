@@ -10,13 +10,16 @@ Our starting point was Rocky from Project Hail Mary: a character with no face, w
 
 ## Contents
 
-1. [Mechanical Design](#mechanical-design)
-2. [Hardware Design](#hardware-design)
-3. [Assembly Guide](#assembly-guide)
-4. [Software](#software)
-5. [Debugging Guide](#debugging-guide)
+1. [System Overview](#system-overview)
+2. [Mechanical Design](#mechanical-design)
+3. [Hardware Design](#hardware-design)
+4. [Assembly Guide](#assembly-guide)
+5. [Software](#software)
+6. [Debugging Guide](#debugging-guide)
 
  All images are in [`images/`](images/).
+
+## System Overview
 
 ### Why These Inputs and Outputs
 
@@ -110,7 +113,7 @@ We built it on the open-source Sesame quadruped. Sesame can walk and pose, but i
 | Head turn | – | Driven by the L1 hip through a lever; no extra servo; self-centring |
 | Leg range | Full | Full: hips keep their original range, knees still turn 180° |
 | Body | Open printed frame, servos exposed | Closed rounded shell, cut away around every joint |
-| Parts | – | 3D-printed parts, standard bearings, steel push rods, M2/M3 screws |
+| Parts | 3D-printed parts, M2 screws | 3D-printed parts, standard bearings, steel push rods, M2/M3 screws |
 
 ### Base Design
 
