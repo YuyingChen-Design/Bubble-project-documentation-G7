@@ -421,3 +421,32 @@ Serial commands:
 | `W` | Wave (smiling) |
 | `F` | Wave (not smiling) |
 | `?` | Ping (replies `READY` when idle) |
+
+## Reflection and Future Work
+
+### What Worked
+
+- **Movement carries emotion.** Even without a face, small changes in speed and easing made the same wave read as happy or sad. Using different ServoEasing curves (linear for a fluid, happy wave, bounce for a reluctant one) was one of the simplest and most effective ways to give Bubble character.
+- **Running three models in parallel.** Splitting head, smile and wave into separate Wekinator projects, coordinated by one Processing sketch, meant each model could be trained and tested on its own. The same structure can grow to more gestures without retraining everything.
+- **Designing the movement digitally first.** We acted the responses out like a puppet, then used a custom head-servo simulator and a digital twin of the robot to design and check the movements before running them on the hardware. This saved time and protected the servos from poses that would have collided.
+- **Turning the head without an extra servo.** Driving the head turn from the L1 hip through a lever kept the robot to 10 servos and reduced the load on the power supply.
+
+### Challenges and What We Learned
+
+- **Servos:** five of our servos turned out to be continuous-rotation (360°) instead of 180°, so they couldn't hold a pose. We only found this by testing each servo on its own, which taught us to test every component before building it in.
+- **Power:** the Arduino alone couldn't power the two head servos reliably; they lagged and the board overheated. Moving all servo power to the power board fixed this. We also learned to stagger servo start-up to avoid sudden current spikes.
+- **Circuit:** our breadboard circuit kept failing, and we eventually rebuilt it from scratch. Several faults came from basic breadboard mistakes, such as power rails that don't connect across separate boards and rows that aren't joined across the centre gap. These are now part of our debugging guide.
+- **Head mechanism:** our first head linkage used string, which went slack under gravity. We changed it to a rigid rod and finally to steel wire push rods. A bearing was also modelled at the wrong size at first, so the pedestal had to be redesigned.
+- **Shell:** the first shell was too thick and heavy, blocked a leg and hid the head's movement. We remapped the space each joint needs, thinned the walls and redesigned the head as a rounder shape (see [Design process](#mechanical-design)). We tried adding holes to save weight, but felt they took away from Bubble's soft, friendly look.
+
+### Future Work
+
+- **More interactions.** We designed further responses that we didn't have time to build:
+    - Tapping the desk (losing focus): a playful, puppy-like pounce.
+    - Rubbing your face (tired or stressed): a concerned, side-to-side head movement.
+    - Looking directly at it: a shy reaction.
+    - Hands together (finished working): a randomly chosen victory dance.
+- **Voice.** Audio input, and connecting a language model so Bubble can respond to what you say, which was our original extension.
+- **A built-in camera,** so Bubble sees from its own point of view instead of from a separate webcam.
+- **Neater wiring.** A servo driver board (PCA9685) would reduce the cables coming out of the body to four, making the robot tidier and easier to move.
+- **Testing with users,** to find out which movements people read as which emotions, and refining them from that.
