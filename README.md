@@ -35,6 +35,66 @@ Bubble answers in the same language. It replies to body language with body langu
 
 ## System Overview
 
+```mermaid
+flowchart LR
+    A[Webcam] --> B[combined_osc.py<br/>MediaPipe tracking]
+    B -->|head pose<br/>port 6448| C1[Wekinator 1<br/>Head: nod / shake<br/>DTW]
+    B -->|smile features<br/>port 6449| C2[Wekinator 2<br/>Smile<br/>classifier]
+    B -->|hand movement<br/>port 6450| C3[Wekinator 3<br/>Wave<br/>DTW]
+    C1 -->|port 12000| D[Processing<br/>combined_reader]
+    C2 -->|port 12000| D
+    C3 -->|port 12000| D
+    D -->|one letter over USB serial<br/>N / S / W / F| E[Arduino Nano Every<br/>bubble.ino]
+    E -->|READY / BUSY / DONE| D
+    E --> F[10 servos<br/>8 legs + 2 head]
+```
+
+### Input
+
+A webcam watches the person sitting at the desk. A Python script, `combined_osc.py`, uses **MediaPipe** to track three things at once and sends each to its own Wekinator project:
+
+- **Head:** the head's pitch and yaw (tilting up and down, turning left and right).
+- **Smile:** the left and right mouth-smile measurements from the face.
+- **Hand:** the hand's movement and tilt.
+
+The script also sends a "tracking status" signal for each, so the rest of the system knows when it can trust the data, for example when a face or hand has gone out of view.
+
+### Machine Learning
+
+Three Wekinator models run in parallel:
+
+| Model | Type | Detects |
+| --- | --- | --- |
+| 1. Head | Dynamic time warping (DTW) | A **nod** or a **head shake** |
+| 2. Smile | Classifier | **Smiling** or **straight-faced** |
+| 3. Wave | Dynamic time warping (DTW) | A **hand wave** |
+
+DTW suits nods, shakes and waves because they're movements over time rather than held poses. A classifier suits smiling, which is a state at a single moment.
+
+Full details of the training data and evaluation are in [Machine Learning](#machine-learning).
+
+### Messaging
+
+All three Wekinator models send their results to one **Processing** sketch on port 12000, which decides what the robot should do:
+
+- **Nod** or **shake** → sends **N** or **S**.
+- **Wave** → Processing checks the person's expression over the next 0.6 seconds. If at least 80% of the smile predictions agree, it sends **W** (smiling) or **F** (not smiling). If the result is unclear, it does nothing rather than guess.
+
+Processing only accepts a gesture when tracking is stable and the robot is free. It sends **one letter** over USB serial, and the Arduino replies:
+
+- **BUSY** when it starts the movement
+- **DONE** when it finishes
+
+If the Arduino doesn't reply in time, Processing goes into a safe **fault** state instead of sending more commands. Pressing **r** recovers it.
+
+### Output
+
+The Arduino Nano Every runs `bubble.ino`, which turns each letter into a movement of the 10 servos: 8 in the legs and 2 in the head.
+
+It uses the **ServoEasing** library, so the servos speed up and slow down along curves (linear, bounce, and so on) instead of moving at one fixed speed. We used different curves to give each response its own character, for example a quick, fluid linear wave for happy, and a bounce for the reluctant wave.
+
+**Power:** the servos are powered from the power board,
+
 ## Mechanical Design
 
 Bubble Robot is a small four-legged companion that reacts to people with its body and a nodding, tilting and turning head.
