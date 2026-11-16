@@ -10,7 +10,8 @@
 //   /output_1        Wekinator #1 (head, DTW)    head    nod detection
 //   /output_2        Wekinator #1 (head, DTW)    head    shake detection
 //   /smile/outputs   Wekinator #2 (smile, clf)   smile   class: 1 smiling, 2 straight-faced
-//   /wave/outputs    Wekinator #3 (wave, DTW)    wave    wave detection (every message)
+//   /wave/detected   Wekinator #3 (wave, DTW)    wave    wave detection (gesture message, on match)
+//   /wave/outputs    Wekinator #3 (wave, DTW)    wave    DTW distances (continuous, display only)
 //   /head/status     combined_osc.py             head    tracking validity heartbeat
 //   /head/pose       combined_osc.py             head    pitch yaw (logging)
 //   /smile/status    combined_osc.py             smile   tracking validity heartbeat
@@ -23,9 +24,11 @@
 // Wekinator setup:
 //   #1 head  DTW        : input :6448, output :12000 (gesture messages /output_1, /output_2)
 //   #2 smile classifier : input :6449, output :12000, message "/smile/outputs"
-//   #3 wave  DTW        : input :6450, output :12000, message "/wave/outputs"
-//   NOTE: if Wekinator #3 also sends a per-gesture "/output_1" on a match, it cannot be
-//   told apart from the head nod on this port. Watch the ADDRESS lines at startup.
+//   #3 wave  DTW        : input :6450, output :12000, group message "/wave/outputs",
+//                         gesture message "/wave/detected"
+//   NOTE: Wekinator #3's gesture message must NOT be left at the default "/output_1" -
+//   it would be indistinguishable from the head nod on this port. Watch the ADDRESS
+//   lines at startup: a wave match must log "ADDRESS /wave/detected -> wave".
 //
 // Tabs:
 //   combined_reader.pde : setup, draw, OSC dispatch, keys, routing (this file)

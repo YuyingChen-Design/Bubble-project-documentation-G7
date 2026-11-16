@@ -15,10 +15,11 @@ Team Members: Lucie Mallard-Gonder, Rohan Oruganti, Yuying Chen
 4. [Hardware Design](#hardware-design)
 5. [Assembly Guide](#assembly-guide)
 6. [Software](#software)
-7. [Machine Learning](#machine-learning-1)
-8. [Debugging Guide](#debugging-guide)
-9. [Reflection and Future Work](#reflection-and-future-work)
-10. [References and Acknowledgements](#references-and-acknowledgements)
+7. [Animation Design Process](#animation-design-process)
+8. [Machine Learning](#machine-learning-1)
+9. [Debugging Guide](#debugging-guide)
+10. [Reflection and Future Work](#reflection-and-future-work)
+11. [References and Acknowledgements](#references-and-acknowledgements)
 
 All images are in [`images/`](images/).
 
@@ -76,10 +77,11 @@ flowchart LR
     A[Webcam] --> B[combined_osc.py<br/>MediaPipe tracking]
     B -->|head pose<br/>port 6448| C1[Wekinator 1<br/>Head: nod / shake<br/>DTW]
     B -->|smile features<br/>port 6449| C2[Wekinator 2<br/>Smile<br/>classifier]
-    B -->|hand movement<br/>port 6450| C3[Wekinator 3<br/>Wave<br/>DTW]
+    B -->|hand tilt<br/>port 6450| C3[Wekinator 3<br/>Wave<br/>DTW]
     C1 -->|port 12000| D[Processing<br/>combined_reader]
     C2 -->|port 12000| D
     C3 -->|port 12000| D
+    B -.->|tracking-status heartbeats<br/>port 12000| D
     D -->|one letter over USB serial<br/>N / S / W / F| E[Arduino Nano Every<br/>bubble.ino]
     E -->|READY / BUSY / DONE| D
     E --> F[10 servos<br/>8 legs + 2 head]
@@ -91,7 +93,7 @@ A webcam watches the person sitting at the desk. A Python script, `combined_osc.
 
 - **Head:** the head's pitch and yaw (tilting up and down, turning left and right).
 - **Smile:** the left and right mouth-smile measurements from the face.
-- **Hand:** the hand's movement and tilt.
+- **Hand:** the hand's tilt, which swings from side to side during a wave.
 
 The script also sends a "tracking status" signal for each, so the rest of the system knows when it can trust the data, for example when a face or hand has gone out of view.
 
@@ -129,7 +131,7 @@ The Arduino Nano Every runs `bubble.ino`, which turns each letter into a movemen
 
 It uses the **ServoEasing** library, so the servos speed up and slow down along curves (linear, bounce, and so on) instead of moving at one fixed speed. We used different curves to give each response its own character, for example a quick, fluid linear wave for happy, and a bounce for the reluctant wave.
 
-**Power:** the servos are powered from the power board,
+**Power:** the servos are powered from the power board, which runs from a power bank on a separate 5 V rail. The Arduino is powered by the computer over USB, which also carries the serial messages. The two share a ground (see [Hardware Design](#hardware-design)).
 
 ## Mechanical Design
 
@@ -446,6 +448,44 @@ We built and tested each input as its own pipeline before merging them into `com
 
 ---
 
+## Animation Design Process
+
+Bubble has no face, so all of its expression comes from how it moves. To design those movements without depending on the physical robot, we built **digital twins**: interactive 3D models of the robot that run in a web browser. They're in a separate branch of this repository, [`digital-twins`](https://github.com/YuyingChen-Design/Bubble-project-documentation-G7/tree/digital-twins): `Sesame Twin.html` (whole robot) and `Fade-Head-Servo-Sim.html` (head). Download either file and open it in a web browser.
+
+### The two twins
+
+**Head-servo simulator.** This is a model of the two-servo head linkage: the upper servo drives one push-rod and the lower servo drives the other. Each servo has a slider, a target angle and a speed. We used it to try out head movements and see how they looked before running them on the real head.
+
+![Head-servo simulator: 3D view of the two-servo head linkage with upper and lower servo controls](images/head_servo_simulator.webp)
+*The head-servo simulator, with the upper and lower servo controls on the right.*
+
+**Whole-robot digital twin.** This is a model of the full robot, with all 10 servos (R1–R4, L1–L4 and the two head servos HU and HL). Its tabs are:
+- **Easing:** each servo gets its own curve, style and speed, with a preview of the curve. Specs can also be typed in the same notation the firmware uses: `sine-out@200 l3` in the twin, or `cubic@483 r4 bounce@100` in [`bubble_movements.h`](software/arduino/bubble/bubble_movements.h).
+- **Compose and Library:** building and storing gestures.
+- **Play:** a timeline showing every servo's angle during the gesture.
+
+The twin starts from the same stand pose as the firmware (R1 135°, R2 45°, L1 45°, L2 135° and so on). So a gesture designed in the twin uses the same servo names, angles and easing settings as the real robot.
+
+![Whole-robot digital twin: 3D model of Bubble with per-servo easing controls and a timeline of servo angles](images/robot_digital_twin.webp)
+*The whole-robot twin. The Easing tab, on the right, sets a curve and speed for each servo. The timeline at the bottom shows each servo's angle as the gesture plays.*
+
+### How we used them
+
+1. **Design a gesture in the twin.** We tried poses, timings and easing curves until the movement read as the emotion we wanted: excited for the smiling wave, reluctant for the disappointed one.
+2. **Copy it into the firmware.** We moved the poses and easing settings into `bubble_movements.h`. Each gesture there is a sequence of poses with its own easing, such as `gestureWaveSmiling()` and `gestureWaveNotSmiling()`.
+3. **Test on the robot and adjust.** We ran the gesture on Bubble and went back to the twin when something needed changing.
+
+### Why it helped
+
+- **We could see the expression before coding it.** Instead of hard-coding servo angles, uploading and watching the robot, we could judge how a movement *felt* straight away. That made it much quicker to try different easing curves and speeds for each servo.
+- **We could work in parallel.** There was only one robot, and it wasn't always available. With the twins, all of us could design and refine animations at the same time without having the robot at hand.
+- **It sped up the whole process.** Animation work didn't have to wait for the hardware, and each idea took seconds to try instead of a full upload-and-test cycle.
+
+### Limitations
+
+We deliberately didn't make the twins physically accurate. Their job was to show the robot's *expression*, and we had the real robot for checking how movements actually worked, so full accuracy wasn't worth the extra effort. The models don't simulate load, servo speed limits or play in the printed joints, so every gesture was still checked and fine-tuned on the real robot. For example, the shake in the firmware uses "the same pace as the tested shake", a speed that was checked on the robot itself.
+---
+
 ## Machine Learning
 
 ### Inputs and classes
@@ -497,7 +537,7 @@ We use **three separate Wekinator projects** instead of one. Head and wave are m
 |---|---|---|---|---|
 | #1 Head | 6448 | 2 | DTW, 2 gestures | `/output_1` = nod, `/output_2` = shake |
 | #2 Smile | 6449 | 2 | Classifier, 2 classes | `/smile/outputs`: 1 = smiling, 2 = not smiling |
-| #3 Wave | 6450 | 1 | DTW, 1 gesture | `/wave/outputs` |
+| #3 Wave | 6450 | 1 | DTW, 1 gesture | `/wave/detected` on a match; `/wave/outputs` = live DTW distances (display only) |
 
 
 **Why DTW for nod, shake and wave.** A nod is defined by the **shape** of the head's movement over time: down, then back up. DTW compares the recent movement with the recorded examples and lets them stretch or squash in time, so it tolerates some variation in how fast the gesture is done ([tslearn DTW guide](https://tslearn.readthedocs.io/en/stable/user_guide/dtw.html)). How well it copes still depends on the recorded examples and on Wekinator's DTW settings. A classifier only sees one moment at a time. It can't tell a nod from someone who is simply looking down, because a nod only counts once the head comes back up. A wave works the same way: the hand swings back and forth around the upright position, so the pattern over time is what matters. Both could also be recognised by a classifier using features from a short window of movement. We chose DTW because these gestures vary in speed and style between users.
@@ -512,7 +552,7 @@ The saved Wekinator projects contain:
 |---|---|
 | Head (DTW) | 10 recorded gestures: 5 nods (1.35–1.70 s each), 5 shakes (1.45–2.00 s each) |
 | Smile (classifier) | 356 labelled frames: 209 smiling (4 recording rounds), 147 not smiling (1 round) |
-| Wave (DTW) | 22 recorded waves (0.37–0.90 s each) |
+| Wave (DTW) | 11 recorded waves (0.33–0.87 s each) |
 
 We used small example sets while prototyping, and spent most of the effort on preprocessing. We got the final camera late in the project. We haven't formally checked whether these example sets are enough for unfamiliar users or other camera setups.
 
@@ -549,6 +589,13 @@ The main priority is to reduce accidental triggers without making deliberate ges
 
 **Improve hand selection and identity tracking.** Selecting the largest apparent hand worked adequately during the live demonstrations, so this is a lower priority than head-recognition reliability. Nevertheless, future testing should include multiple visible hands and people entering or leaving the frame. Alternative selection rules could use handedness, spatial continuity or an explicit user-selection step to reduce unintended switching between hands.
 
+**Record more, and more varied, training data.** The current example sets are too small to show how well the models work beyond our own team:
+- **Head:** 10 gestures (5 nods, 5 shakes).
+- **Wave:** 11 waves.
+- **Smile:** 356 frames, all recorded within one minute in a single session.
+
+Future work should record examples from several people and across several sessions. These should cover different gesture sizes and speeds, seating positions, distances from the camera and lighting. Some people should be kept out of training and used only for testing, so that results show how the models work for new users. With DTW, more varied examples should cover more nodding and waving styles. However, each extra example is another shape that an unrelated movement could match, so the effect on false positives should be measured, not assumed.
+
 These changes should be assessed using both deliberate gesture trials and timed periods of ordinary behaviour, such as talking, looking around and reaching. Results should distinguish Wekinator detections from robot actions, since the interaction controller intentionally rejects detections while the robot is busy or an expression assessment is running.
 
 ---
@@ -565,6 +612,7 @@ Start with the **Processing console**. Every detection is printed as `ACCEPTED` 
 | `FAULT` straight after a command | The Arduino reset or didn't reply `BUSY` within 1 s | Check the USB cable and power, then press `r` |
 | A panel says `waiting for ... Wekinator...` | That Wekinator isn't running, isn't in **Run** mode, or sends to the wrong port or address | Check the [Outputs and models](#outputs-and-models) table. Use the OSC monitor in `software/tests/test_osc/` to see what's actually arriving |
 | `ADDRESS /wek/outputs -> UNHANDLED` | A Wekinator output message was left at the default `/wek/outputs` | Rename it to `/smile/outputs` or `/wave/outputs` |
+| Waving makes the console print `DETECTION nod` | The wave project's gesture message was left at the default `/output_1`, which is the head nod's address | In Wekinator #3's output settings, set the gesture message to `/wave/detected` |
 | `tracking unavailable` in every panel | `combined_osc.py` isn't running, so there's no heartbeat | Start the Python script |
 | Head: `tracking unavailable (calibrating)` | Neutral calibration is still running, or no face is visible | Look straight at the camera and hold still, or press `c` |
 | Smile: `off angle` | Face turned more than 35° (yaw) or 30° (pitch) | Face the camera |
@@ -603,6 +651,7 @@ Start with the **Processing console**. Every detection is printed as `ACCEPTED` 
 - **A built-in camera,** so Bubble sees from its own point of view instead of from a separate webcam.
 - **Neater wiring.** A servo driver board (PCA9685) would reduce the cables coming out of the body to four, making the robot tidier and easier to move.
 - **Testing with users,** to find out which movements people read as which emotions, and refining them from that.
+- **Software:** See [section above](#evaluation-and-future-work)
 
 ## References and Acknowledgements
 
@@ -638,6 +687,7 @@ In line with the module guidance, we declare the following use of generative AI 
     - troubleshooting the circuit and power set-up
     - building the head-servo animation simulator and robot digital twin for animation.
     - help structuring and drafting parts of this documentation
+    - organising the software files in this repository and pushing them to GitHub. Claude handled the uploading; the code, Wekinator projects and written content it pushed are our own work.
 - **Perplexity:** generating an overview of the system architecture.
 
 All AI-assisted code was tested on our hardware and reviewed by the team. All design decisions, and the final content of this documentation, are our own.

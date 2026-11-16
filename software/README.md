@@ -88,7 +88,7 @@ The trained projects are in `wekinator/`. To build your own instead, make three 
 |---|---|---|---|---|
 | #1 Head | 6448 | 2 | Dynamic Time Warping, 2 gestures | gesture 1 = nod, sent as `/output_1`; gesture 2 = shake, sent as `/output_2` |
 | #2 Smile | 6449 | 2 | Classifier, 2 classes | OSC message `/smile/outputs`; class 1 = smiling, class 2 = not smiling |
-| #3 Wave | 6450 | 1 | Dynamic Time Warping | OSC message `/wave/outputs` |
+| #3 Wave | 6450 | 1 | Dynamic Time Warping, 1 gesture | group OSC message `/wave/outputs`; gesture message **`/wave/detected`** (must not be left at the default `/output_1`, which is the head nod's address) |
 
 Keep the default input message, `/wek/inputs`, for all three. The number of wave inputs is printed when `combined_osc.py` starts. It's 1 unless `use_x` is turned on in `wave_config.json`.
 
@@ -100,7 +100,8 @@ Everything the Processing sketch receives arrives on port 12000. Each message is
 |---|---|---|
 | `/output_1`, `/output_2` | Wekinator #1 | Nod / shake detected |
 | `/smile/outputs` | Wekinator #2 | Smile class: 1 smiling, 2 not smiling |
-| `/wave/outputs` | Wekinator #3 | Wave detected (every message counts as a detection) |
+| `/wave/detected` | Wekinator #3 | Wave detected: the gesture message, sent only on a match (every message counts as a detection) |
+| `/wave/outputs` | Wekinator #3 | Live DTW match distances, sent continuously (display only, never a detection) |
 | `/head/status` | Python | 0 calibrating, 1 tracking, 2 holding, 3 lost, 4 recovering |
 | `/head/pose` | Python | Pitch, yaw: the same values Wekinator gets (logging) |
 | `/smile/status` | Python | 0 starting, 1 tracking, 2 holding, 3 lost, 4 off angle |

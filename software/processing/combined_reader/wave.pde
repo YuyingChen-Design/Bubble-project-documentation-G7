@@ -1,9 +1,11 @@
 // Hand wave (Wekinator #3 DTW) + wave_osc tracking checks. Display/validity as wave_reader.pde.
 //
 // Port 12000 addresses handled here:
-//   /wave/outputs ... (Wekinator #3) -> wave DETECTION. Every message is a detection; the
-//                                       values are shown/logged exactly as received.
-//                                       No threshold, no edge detection.
+//   /wave/detected ...(Wekinator #3) -> wave DETECTION. Wekinator's per-gesture DTW message,
+//                                       sent only when the wave gesture matches. Every
+//                                       message is a detection; no threshold, no edge detection.
+//   /wave/outputs f.. (Wekinator #3) -> DTW group message: continuous match distances while
+//                                       Wekinator runs. Display only - NEVER a detection.
 //   /wave/status i    (python)       -> 0 no hand, 1 tracking, 2 calibrating,
 //                                       3 reset (extractor history restarted -> settle timer restarts)
 //   /wave/features f..(python)       -> the exact floats Wekinator receives (logging only)
@@ -17,13 +19,14 @@
 // wavesmiling / wavenotsmiling / cancel.
 
 // ---- wave config ----
-final String WAVE_OUTPUT_ADDR   = "/wave/outputs";
+final String WAVE_DETECT_ADDR   = "/wave/detected";  // Wekinator #3 gesture message (match)
+final String WAVE_DISTANCE_ADDR = "/wave/outputs";   // Wekinator #3 group message (distances)
 final String WAVE_STATUS_ADDR   = "/wave/status";
 final String WAVE_FEATURES_ADDR = "/wave/features";
 final String WAVE_ANGLE_ADDR    = "/wave/angle";
 final int    WAVE_HEARTBEAT_MS  = 500;    // no /wave/status this long = python not running
 final int    WAVE_SETTLE_MS     = 1000;   // hand must be tracked this long (>= one wave) to call a result VALID
-final boolean WAVE_PRINT_RAW    = true;   // print every /wave/outputs message
+final boolean WAVE_PRINT_RAW    = true;   // print every /wave/detected message
 // ---------------------
 
 final String[] WAVE_STATUS_NAMES = {"no hand", "tracking", "calibrating", "reset (reacquired / hand changed / gap)"};
@@ -39,9 +42,11 @@ float wavePhiDeg = 0;
 int waveAngleTime = -100000;
 String waveFeatures = "";
 String waveLastRaw = "(none yet)";
-String waveLastValues = "";      // just the arguments of the last /wave/outputs
+String waveLastValues = "";      // just the arguments of the last /wave/detected
 int waveLastRawTime = -100000;
-String waveLastProblem = null;   // validity of the last /wave/outputs at arrival (null = VALID)
+String waveLastProblem = null;   // validity of the last /wave/detected at arrival (null = VALID)
+String waveDistance = "";        // arguments of the last /wave/outputs (DTW distances, display only)
+int waveDistanceTime = -100000;
 final ArrayList<String> waveQReject = new ArrayList<String>();   // one entry per detection; null = valid
 
 // draw thread only
@@ -85,7 +90,14 @@ boolean waveOscEvent(OscMessage msg) {
       waveFeatures = f;
       return true;
     }
-    if (a.equals(WAVE_OUTPUT_ADDR)) {
+    if (a.equals(WAVE_DISTANCE_ADDR)) {
+      String d = "";
+      for (int i = 0; i < msg.arguments().length; i++) d += (i > 0 ? "  " : "") + msg.arguments()[i];
+      waveDistance = d;
+      waveDistanceTime = now;
+      return true;
+    }
+    if (a.equals(WAVE_DETECT_ADDR)) {
       String vals = "";
       for (int i = 0; i < msg.arguments().length; i++) vals += (i > 0 ? "  " : "") + msg.arguments()[i];
       waveLastValues = vals;
@@ -129,8 +141,8 @@ void waveUpdate() {
 void drawWavePanel(int w) {
   int now = millis();
   int cx = w / 2;
-  String problemNow, raw, vals, feats, lastProblem;
-  int rawTime, angleTime;
+  String problemNow, raw, vals, feats, lastProblem, dist;
+  int rawTime, angleTime, distTime;
   float phi;
   synchronized (waveLock) {
     problemNow = waveTrackingProblem(now);
@@ -141,23 +153,30 @@ void drawWavePanel(int w) {
     angleTime = waveAngleTime;
     phi = wavePhiDeg;
     feats = waveFeatures;
+    dist = waveDistance;
+    distTime = waveDistanceTime;
   }
   boolean wekSeen = rawTime > 0;
   boolean wekFresh = wekSeen && now - rawTime <= WAVE_HEARTBEAT_MS;
+  boolean distFresh = now - distTime <= WAVE_HEARTBEAT_MS;
 
-  // big: Wekinator's output, exactly as received
+  // big: last wave detection (/wave/detected), exactly as received
   if (!wekSeen) {
     textSize(22);
     fill(255);
-    text("waiting for wave Wekinator...", cx, 45);
+    text(distFresh ? "no wave detected yet" : "waiting for wave Wekinator...", cx, 45);
   } else {
     textSize(vals.length() > 14 ? 22 : 36);
     fill(!wekFresh ? color(120) : lastProblem == null ? color(0, 220, 0) : color(230, 160, 60));
-    text(vals.length() > 0 ? vals : "(no values)", cx, 45);
+    text(vals.length() > 0 ? vals : "WAVE", cx, 45);
     textSize(12);
     fill(150);
-    text("wave Wekinator output" + (wekFresh ? "" : "  (stale)"), cx, 75);
+    text("last wave detection" + (wekFresh ? "" : "  (" + (now - rawTime) + " ms ago)"), cx, 75);
   }
+  // live DTW distances (/wave/outputs) - display only, never a detection
+  textSize(12);
+  fill(distFresh ? color(200) : color(110));
+  text(distFresh ? "DTW distance: " + dist : "DTW distance: --  (Wekinator not running?)", cx, 92);
 
   // live tilt indicator: a line at angle phi from vertical (image-right = clockwise)
   boolean angleFresh = now - angleTime <= WAVE_HEARTBEAT_MS;

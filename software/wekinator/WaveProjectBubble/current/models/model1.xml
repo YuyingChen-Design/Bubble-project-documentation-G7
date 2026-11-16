@@ -2385,7 +2385,7 @@
       <string>output_1</string>
     </gestureNames>
     <gestureOscMessages>
-      <string>/output_1</string>
+      <string>/wave/detected</string>
     </gestureOscMessages>
     <outputOscMessage>output</outputOscMessage>
   </myOutput>
