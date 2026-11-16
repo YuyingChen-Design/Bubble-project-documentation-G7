@@ -625,7 +625,7 @@ Start with the **Processing console**. Every detection is printed as `ACCEPTED` 
 
 ### Acknowledgements
 
-Thank you to the CPS teaching team, Becky Stewart, Oisin Shaw and Andy Brand, and to the graduate teaching assistants, Imogen Young and Wei Zhang, for their guidance and feedback throughout the project. Thank you to the ACE Workshop technicians for their help with fabrication and 3D printing, and to our classmates for their help troubleshooting along the way.
+Thank you to the CPS teaching team, Becky Stewart, Oisin Shaw and Andy Brand, and to the teaching assistants, PHD students Imogen Young, Wei Zhang and IDE 2 student Carl, for their guidance and feedback throughout the project. Thank you to the ACE Workshop technicians for their help with fabrication and 3D printing, and to our classmates for their help troubleshooting along the way.
 
 ### Use of Generative AI
 
@@ -635,8 +635,7 @@ In line with the module guidance, we declare the following use of generative AI 
     - adapting the Sesame firmware to the Arduino Nano Every and our wiring
     - writing hardware test and calibration sketches
     - troubleshooting the circuit and power set-up
-    - building the head-servo animation simulator
-    - generating a concept image of the head-turn bearing system
+    - building the head-servo animation simulator and robot digital twin for animation.
     - help structuring and drafting parts of this documentation
 - **Perplexity:** generating an overview of the system architecture.
 
